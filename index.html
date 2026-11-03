@@ -99,11 +99,9 @@
                 </button>
             </div>
 
-            <div id="homeLoading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 hidden">
-                <div class="col-span-full text-center py-12 text-slate-400">
-                    <i class="fa-solid fa-circle-notch fa-spin text-2xl text-indigo-500 mb-2"></i>
-                    <p class="text-xs">Memuat data manhwa...</p>
-                </div>
+            <div id="homeLoading" class="text-center py-12">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-indigo-500 mb-3"></i>
+                <p class="text-slate-400 text-sm">Memuat katalog manhwa...</p>
             </div>
 
             <div id="manhwaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
@@ -177,9 +175,9 @@
             </div>
             <div id="readerLoading" class="text-center py-20">
                 <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500"></i>
-                <p class="text-slate-400 text-sm mt-3">Memuat gambar...</p>
+                <p class="text-slate-400 text-sm mt-3">Memuat gambar chapter...</p>
             </div>
-            <div id="readerImages" class="max-w-3xl mx-auto flex flex-col items-center"></div>
+            <div id="readerImages" class="max-w-3xl mx-auto flex flex-col items-center space-y-1"></div>
         </div>
 
     </main>
@@ -194,35 +192,44 @@
         const BASE_SEARCH = "https://kyzorohan.web.id/api/manwhaku-search";
         const BASE_READ = "https://kyzorohan.web.id/api/manwhaku-baca";
 
-        // Backup Data jika API Gagal / Terblokir CORS di Local Storage
-                const FALLBACK_DATA = [
+        // Backup Data Manhwa Resmi (Cover Wikimedia terjamin aman & tampil sempurna)
+        const FALLBACK_DATA = [
             { 
                 title: "Solo Leveling", 
                 thumbnail: "https://upload.wikimedia.org/wikipedia/en/9/9f/Solo_Leveling_Webtoon.jpg", 
                 genre: "Action, Fantasy, Adventure", 
                 description: "E-rank hunter Jinwoo Sung is the weakest of them all. Swept into a dungeon, he is left for dead, but wakes up with a mysterious system granting him limitless power.", 
-                chapters: [{ title: "Chapter 1", url: "https://manwhaku.id/solo-leveling-chapter-1", chapter: 1 }] 
+                chapters: [
+                    { title: "Chapter 1", url: "https://manwhaku.id/solo-leveling-chapter-1", chapter: 1 },
+                    { title: "Chapter 2", url: "https://manwhaku.id/solo-leveling-chapter-2", chapter: 2 }
+                ] 
             },
             { 
                 title: "The Beginning After The End", 
                 thumbnail: "https://upload.wikimedia.org/wikipedia/en/7/77/The_Beginning_After_the_End_Cover.jpg", 
                 genre: "Action, Fantasy, Reincarnation", 
                 description: "King Grey has unmatched strength, wealth, and prestige in a world governed by martial ability. However, solitude lingers closely behind.", 
-                chapters: [{ title: "Chapter 1", url: "https://manwhaku.id/tbate-chapter-1", chapter: 1 }] 
+                chapters: [
+                    { title: "Chapter 1", url: "https://manwhaku.id/tbate-chapter-1", chapter: 1 }
+                ] 
             },
             { 
                 title: "Omniscient Reader's Viewpoint", 
                 thumbnail: "https://upload.wikimedia.org/wikipedia/en/7/7b/Omniscient_Reader%27s_Viewpoint_Webtoon_Cover.jpeg", 
                 genre: "Fantasy, Action, Survival", 
                 description: "Dokja was an average office worker whose sole interest was reading his favorite web novel. When the novel suddenly becomes reality, he is the only one who knows how the world ends.", 
-                chapters: [{ title: "Chapter 1", url: "https://manwhaku.id/orv-chapter-1", chapter: 1 }] 
+                chapters: [
+                    { title: "Chapter 1", url: "https://manwhaku.id/orv-chapter-1", chapter: 1 }
+                ] 
             },
             { 
                 title: "Magic Emperor", 
                 thumbnail: "https://cdn.myanimelist.net/images/manga/3/250103.jpg", 
                 genre: "Action, Fantasy, Martial Arts", 
                 description: "The demonic emperor Zhuo Yifan was betrayed by his student, causing him to be reborn as a servant boy.", 
-                chapters: [{ title: "Chapter 1", url: "https://manwhaku.id/magic-emperor-chapter-1", chapter: 1 }] 
+                chapters: [
+                    { title: "Chapter 1", url: "https://manwhaku.id/magic-emperor-chapter-1", chapter: 1 }
+                ] 
             }
         ];
 
@@ -257,7 +264,6 @@
             gridEl.innerHTML = '';
 
             try {
-                // Mencari kata kunci umum 'solo' atau 'a' untuk mengisi feed awal
                 const res = await fetch(`${BASE_SEARCH}?key=${API_KEY}&q=solo`);
                 const json = await res.json();
                 
@@ -270,7 +276,7 @@
                     renderGrid(FALLBACK_DATA, 'manhwaGrid');
                 }
             } catch (err) {
-                console.warn("API request gagal (kemungkinan CORS atau koneksi), menggunakan data fallback:", err);
+                console.warn("Menggunakan data fallback lokal karena API utama gagal/CORS:", err);
                 renderGrid(FALLBACK_DATA, 'manhwaGrid');
             } finally {
                 loadingEl.classList.add('hidden');
@@ -327,7 +333,7 @@
 
                 card.innerHTML = `
                     <div class="aspect-[3/4] relative overflow-hidden bg-slate-800">
-                        <img src="${thumb}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+                        <img src="${thumb}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400?text=Image+Error'">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
                     </div>
                     <div class="p-3 flex flex-col flex-1 justify-between">
@@ -368,7 +374,7 @@
             document.getElementById('detailContent').innerHTML = `
                 <div class="flex flex-col md:flex-row gap-6">
                     <div class="w-full md:w-56 shrink-0">
-                        <img src="${thumb}" alt="${title}" class="w-full aspect-[3/4] object-cover rounded-xl shadow-lg border border-slate-700">
+                        <img src="${thumb}" alt="${title}" class="w-full aspect-[3/4] object-cover rounded-xl shadow-lg border border-slate-700" onerror="this.src='https://via.placeholder.com/300x400?text=Image+Error'">
                     </div>
                     <div class="flex-1 space-y-4">
                         <div class="flex items-start justify-between">
@@ -409,20 +415,26 @@
 
                 loadingEl.classList.add('hidden');
                 if (images.length === 0) {
-                    imagesEl.innerHTML = `<p class="text-center text-red-400 py-12">Gagal memuat gambar chapter.</p>`;
+                    imagesEl.innerHTML = `<p class="text-center text-red-400 py-12">Gagal memuat gambar chapter dari server API.</p>`;
                     return;
                 }
 
                 images.forEach((imgSrc) => {
                     const img = document.createElement('img');
-                    img.src = imgSrc;
-                    img.className = "w-full h-auto object-contain block";
+                    // Menggunakan image proxy pihak ketiga gratis untuk bypass pembatasan hotlink/CORS gambar manga
+                    img.src = `https://images.weserv.nl/?url=${encodeURIComponent(imgSrc)}`;
+                    img.className = "w-full h-auto object-contain block max-w-2xl";
+                    img.loading = "lazy";
+                    img.onerror = function() {
+                        // Fallback langsung ke URL asli jika proxy gagal
+                        this.src = imgSrc;
+                    };
                     imagesEl.appendChild(img);
                 });
             } catch (err) {
                 console.error(err);
                 loadingEl.classList.add('hidden');
-                imagesEl.innerHTML = `<p class="text-center text-red-400 py-12">Kesalahan koneksi saat mengambil gambar.</p>`;
+                imagesEl.innerHTML = `<p class="text-center text-red-400 py-12">Terjadi kesalahan koneksi saat mengambil gambar.</p>`;
             }
         }
 
