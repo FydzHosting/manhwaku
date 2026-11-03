@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta Referrer Policy untuk bypass blokir gambar hotlinking -->
+    <meta name="referrer" content="no-referrer">
     <title>Baca Manhwa - Fydz Official</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -192,11 +194,17 @@
         const BASE_SEARCH = "https://kyzorohan.web.id/api/manwhaku-search";
         const BASE_READ = "https://kyzorohan.web.id/api/manwhaku-baca";
 
-        // Backup Data Manhwa Resmi (Cover Wikimedia terjamin aman & tampil sempurna)
+        // URL Proxy gambar universal untuk memastikan tidak ada blokir Referrer/CORS di Vercel
+        function getProxyImage(url) {
+            if (!url || url.includes('placeholder')) return 'https://placehold.co/300x400/1e293b/6366f1?text=Cover+Manhwa';
+            return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&output=jpg`;
+        }
+
+        // Data Manhwa fallback aman dengan proxy image
         const FALLBACK_DATA = [
             { 
                 title: "Solo Leveling", 
-                thumbnail: "https://upload.wikimedia.org/wikipedia/en/9/9f/Solo_Leveling_Webtoon.jpg", 
+                thumbnail: "https://images.weserv.nl/?url=https://upload.wikimedia.org/wikipedia/en/9/9f/Solo_Leveling_Webtoon.jpg", 
                 genre: "Action, Fantasy, Adventure", 
                 description: "E-rank hunter Jinwoo Sung is the weakest of them all. Swept into a dungeon, he is left for dead, but wakes up with a mysterious system granting him limitless power.", 
                 chapters: [
@@ -206,7 +214,7 @@
             },
             { 
                 title: "The Beginning After The End", 
-                thumbnail: "https://upload.wikimedia.org/wikipedia/en/7/77/The_Beginning_After_the_End_Cover.jpg", 
+                thumbnail: "https://images.weserv.nl/?url=https://upload.wikimedia.org/wikipedia/en/7/77/The_Beginning_After_the_End_Cover.jpg", 
                 genre: "Action, Fantasy, Reincarnation", 
                 description: "King Grey has unmatched strength, wealth, and prestige in a world governed by martial ability. However, solitude lingers closely behind.", 
                 chapters: [
@@ -215,7 +223,7 @@
             },
             { 
                 title: "Omniscient Reader's Viewpoint", 
-                thumbnail: "https://upload.wikimedia.org/wikipedia/en/7/7b/Omniscient_Reader%27s_Viewpoint_Webtoon_Cover.jpeg", 
+                thumbnail: "https://images.weserv.nl/?url=https://upload.wikimedia.org/wikipedia/en/7/7b/Omniscient_Reader%27s_Viewpoint_Webtoon_Cover.jpeg", 
                 genre: "Fantasy, Action, Survival", 
                 description: "Dokja was an average office worker whose sole interest was reading his favorite web novel. When the novel suddenly becomes reality, he is the only one who knows how the world ends.", 
                 chapters: [
@@ -224,7 +232,7 @@
             },
             { 
                 title: "Magic Emperor", 
-                thumbnail: "https://cdn.myanimelist.net/images/manga/3/250103.jpg", 
+                thumbnail: "https://images.weserv.nl/?url=https://cdn.myanimelist.net/images/manga/3/250103.jpg", 
                 genre: "Action, Fantasy, Martial Arts", 
                 description: "The demonic emperor Zhuo Yifan was betrayed by his student, causing him to be reborn as a servant boy.", 
                 chapters: [
@@ -276,7 +284,6 @@
                     renderGrid(FALLBACK_DATA, 'manhwaGrid');
                 }
             } catch (err) {
-                console.warn("Menggunakan data fallback lokal karena API utama gagal/CORS:", err);
                 renderGrid(FALLBACK_DATA, 'manhwaGrid');
             } finally {
                 loadingEl.classList.add('hidden');
@@ -325,7 +332,8 @@
 
             items.forEach(item => {
                 const title = item.title || item.name || "Tanpa Judul";
-                const thumb = item.thumbnail || item.image || item.cover || "https://via.placeholder.com/300x400?text=No+Cover";
+                const rawThumb = item.thumbnail || item.image || item.cover || "";
+                const thumb = getProxyImage(rawThumb);
 
                 const card = document.createElement('div');
                 card.className = "bg-cardbg rounded-xl overflow-hidden border border-slate-800 hover:border-indigo-500/50 transition duration-300 flex flex-col cursor-pointer shadow-md group";
@@ -333,7 +341,7 @@
 
                 card.innerHTML = `
                     <div class="aspect-[3/4] relative overflow-hidden bg-slate-800">
-                        <img src="${thumb}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400?text=Image+Error'">
+                        <img src="${thumb}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://placehold.co/300x400/1e293b/6366f1?text=${encodeURIComponent(title)}'">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
                     </div>
                     <div class="p-3 flex flex-col flex-1 justify-between">
@@ -349,7 +357,8 @@
             switchTab('detail');
 
             const title = item.title || item.name || "Tanpa Judul";
-            const thumb = item.thumbnail || item.image || item.cover || "";
+            const rawThumb = item.thumbnail || item.image || item.cover || "";
+            const thumb = getProxyImage(rawThumb);
             const desc = item.description || item.synopsis || "Tidak ada deskripsi tersedia.";
             const chapters = item.chapters || item.chapterList || [];
             const isBookmarked = checkIsBookmarked(title);
@@ -374,7 +383,7 @@
             document.getElementById('detailContent').innerHTML = `
                 <div class="flex flex-col md:flex-row gap-6">
                     <div class="w-full md:w-56 shrink-0">
-                        <img src="${thumb}" alt="${title}" class="w-full aspect-[3/4] object-cover rounded-xl shadow-lg border border-slate-700" onerror="this.src='https://via.placeholder.com/300x400?text=Image+Error'">
+                        <img src="${thumb}" alt="${title}" class="w-full aspect-[3/4] object-cover rounded-xl shadow-lg border border-slate-700" onerror="this.src='https://placehold.co/300x400/1e293b/6366f1?text=No+Cover'">
                     </div>
                     <div class="flex-1 space-y-4">
                         <div class="flex items-start justify-between">
@@ -421,14 +430,9 @@
 
                 images.forEach((imgSrc) => {
                     const img = document.createElement('img');
-                    // Menggunakan image proxy pihak ketiga gratis untuk bypass pembatasan hotlink/CORS gambar manga
-                    img.src = `https://images.weserv.nl/?url=${encodeURIComponent(imgSrc)}`;
+                    img.src = getProxyImage(imgSrc);
                     img.className = "w-full h-auto object-contain block max-w-2xl";
                     img.loading = "lazy";
-                    img.onerror = function() {
-                        // Fallback langsung ke URL asli jika proxy gagal
-                        this.src = imgSrc;
-                    };
                     imagesEl.appendChild(img);
                 });
             } catch (err) {
